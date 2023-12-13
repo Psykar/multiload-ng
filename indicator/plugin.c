@@ -179,11 +179,18 @@ indicator_graph_update_cb(LoadGraph *g, gpointer user_data)
 	}
 
 	// resize widget and offscreen window to fit into panel
+	int icon_height = indicator_get_icon_height();
 	if (multiload_get_orientation(g->multiload) == GTK_ORIENTATION_HORIZONTAL)
-		gtk_widget_set_size_request(GTK_WIDGET(g->multiload->container), multiload_calculate_size_request(g->multiload), indicator_get_icon_height());
+		gtk_widget_set_size_request(GTK_WIDGET(g->multiload->container), multiload_calculate_size_request(g->multiload), icon_height);
 	else
-		gtk_widget_set_size_request(GTK_WIDGET(g->multiload->container), 120, indicator_get_icon_height()); //TODO 120 should not be hardcoded
+		gtk_widget_set_size_request(GTK_WIDGET(g->multiload->container), 120, icon_height); //TODO 120 should not be hardcoded
+
 	gtk_widget_get_allocation (GTK_WIDGET(g->multiload->container), &allocation);
+	if (allocation.height != icon_height) {
+		// If we render now then we don't recover, so skip it
+		return;
+	}
+
 	gtk_window_resize(GTK_WINDOW(offscr), allocation.width, allocation.height);
 
 	indicator_update_pixbuf(g->multiload);
