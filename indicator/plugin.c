@@ -49,6 +49,8 @@ static int icon_current_index=0;
 static gboolean indicator_connected;
 static GtkWidget *graphs_menu_items[GRAPH_MAX];
 
+static int lasttick;
+
 static void
 indicator_cleanup(int sig)
 {
@@ -153,9 +155,9 @@ indicator_update_pixbuf(MultiloadPlugin *ma)
 	if (error != NULL) {
 		g_error("Cannot save Multiload-ng window to temporary buffer: %s\n", error->message);
 		g_clear_error(&error);
-	} else
+	} else {
 		app_indicator_set_icon(indicator, icon_filename[icon_current_index]);
-
+	}
 	icon_current_index = 1-icon_current_index;
 	cairo_surface_destroy (surface);
 	cairo_destroy (cr);
@@ -165,6 +167,13 @@ static void
 indicator_graph_update_cb(LoadGraph *g, gpointer user_data)
 {
 	GtkAllocation allocation;
+
+	// Don't tick too often!
+	int now = time(NULL);
+	if (now - lasttick < 1) {
+		return;
+	}
+	lasttick = now;
 
 	indicator_update_menu(g->multiload);
 
